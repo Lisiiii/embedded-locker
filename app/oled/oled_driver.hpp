@@ -65,7 +65,8 @@ public:
     }
 
     /* 以屏幕像素点为单位，以左上角为原点 x:0~127 y:0~63 */
-    void draw_circle(uint8_t centerX, uint8_t centerY, uint8_t radius, bool if_fill) {
+    void draw_circle(uint8_t centerX, uint8_t centerY, uint8_t radius, bool if_fill, bool if_inverse = false) {
+        bool mode = !if_inverse;
         if (centerX >= OLED_WIDTH || centerY >= OLED_HEIGHT) {
             return;
         }
@@ -82,13 +83,13 @@ public:
             int32_t ny = centerY - y;
 
             if (px >= 0 && px < OLED_WIDTH) {
-                if (py >= 0 && py < OLED_HEIGHT) set_pixel(px, py, 1);
-                if (ny >= 0 && ny < OLED_HEIGHT) set_pixel(px, ny, 1);
+                if (py >= 0 && py < OLED_HEIGHT) set_pixel(px, py, mode);
+                if (ny >= 0 && ny < OLED_HEIGHT) set_pixel(px, ny, mode);
             }
 
             if (nx >= 0 && nx < OLED_WIDTH) {
-                if (py >= 0 && py < OLED_HEIGHT) set_pixel(nx, py, 1);
-                if (ny >= 0 && ny < OLED_HEIGHT) set_pixel(nx, ny, 1);
+                if (py >= 0 && py < OLED_HEIGHT) set_pixel(nx, py, mode);
+                if (ny >= 0 && ny < OLED_HEIGHT) set_pixel(nx, ny, mode);
             }
 
             e2 = err;
@@ -113,13 +114,13 @@ public:
                         int32_t ny = centerY - j;
 
                         if (px >= 0 && px < OLED_WIDTH) {
-                            if (py >= 0 && py < OLED_HEIGHT) set_pixel(px, py, 1);
-                            if (ny >= 0 && ny < OLED_HEIGHT) set_pixel(px, ny, 1);
+                            if (py >= 0 && py < OLED_HEIGHT) set_pixel(px, py, mode);
+                            if (ny >= 0 && ny < OLED_HEIGHT) set_pixel(px, ny, mode);
                         }
 
                         if (nx >= 0 && nx < OLED_WIDTH) {
-                            if (py >= 0 && py < OLED_HEIGHT) set_pixel(nx, py, 1);
-                            if (ny >= 0 && ny < OLED_HEIGHT) set_pixel(nx, ny, 1);
+                            if (py >= 0 && py < OLED_HEIGHT) set_pixel(nx, py, mode);
+                            if (ny >= 0 && ny < OLED_HEIGHT) set_pixel(nx, ny, mode);
                         }
                     }
 
