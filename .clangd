@@ -1,0 +1,8 @@
+CompileFlags:
+    Add:
+        - "-IC:\\Users\\22561\\arm-none-eabi-gcc\\arm-none-eabi\\include"
+        - "-IC:\\Users\\22561\\arm-none-eabi-gcc\\arm-none-eabi\\include\\c++\\13.3.1"
+        - "-IC:\\Users\\22561\\arm-none-eabi-gcc\\arm-none-eabi\\include\\c++\\13.3.1\\arm-none-eabi"
+Diagnostics:
+  Suppress:
+    - "pp_file_not_found"
