@@ -28,8 +28,8 @@
             "label": "Build",
             "dependsOrder": "sequence",
             "dependsOn": [
-                "xmake"
-                // "download"
+                "xmake",
+                "download"
             ],
             "problemMatcher": [],
             "group": {

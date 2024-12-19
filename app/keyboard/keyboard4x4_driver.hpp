@@ -1,6 +1,26 @@
 #pragma once
 #include <main.h>
 
+namespace keyboard {
+enum class KeyCode : uint16_t {
+    KEY_1 = 0x0001,
+    KEY_2 = 0x0002,
+    KEY_3 = 0x0004,
+    KEY_C = 0x0008,
+    KEY_4 = 0x0010,
+    KEY_5 = 0x0020,
+    KEY_6 = 0x0040,
+    KEY_D = 0x0080,
+    KEY_7 = 0x0100,
+    KEY_8 = 0x0200,
+    KEY_9 = 0x0400,
+    KEY_E = 0x0800,
+    KEY_A = 0x1000,
+    KEY_0 = 0x2000,
+    KEY_B = 0x4000,
+    KEY_F = 0x8000,
+    NONE = 0
+};
 class Keyboard4x4 {
 private:
     static constexpr uint16_t get_gpio_pin(uint8_t index) { return (0x0001 * (1 << index % 4)) << (index & ~0b11); }
@@ -26,25 +46,7 @@ private:
 
 public:
     Keyboard4x4() = default;
-    enum class KeyCode : uint16_t {
-        KEY_1 = 0x0001,
-        KEY_2 = 0x0002,
-        KEY_3 = 0x0004,
-        KEY_C = 0x0008,
-        KEY_4 = 0x0010,
-        KEY_5 = 0x0020,
-        KEY_6 = 0x0040,
-        KEY_D = 0x0080,
-        KEY_7 = 0x0100,
-        KEY_8 = 0x0200,
-        KEY_9 = 0x0400,
-        KEY_E = 0x0800,
-        KEY_A = 0x1000,
-        KEY_0 = 0x2000,
-        KEY_B = 0x4000,
-        KEY_F = 0x8000,
-        NONE = 0
-    };
+
     bool key_changed = false;
     KeyCode read_keys() {
         uint16_t key_code = 0;
@@ -59,3 +61,5 @@ public:
         return static_cast<KeyCode>(key_code);
     };
 };
+inline constinit Keyboard4x4 keyboard_reader;
+}

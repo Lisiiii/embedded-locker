@@ -19,12 +19,12 @@ typedef struct {
 
 class SSD1306 {
 public:
-    SSD1306(int contrast = 0xEF) { OLED_Init(contrast); };
-
-    int OLED_WIDTH = 128;
-    int OLED_HEIGHT = 64;
-    Cursor current_cursor = { 64, 32 };
-    FontCursor font_cursor = { 0, 0, 0, 0 };
+    // SSD1306(int contrast = 0xEF) { OLED_Init(contrast); };
+    SSD1306() = default;
+    int OLED_WIDTH;
+    int OLED_HEIGHT;
+    Cursor current_cursor;
+    FontCursor font_cursor;
 
     void set_contrast(int contrast) {
         OLED_write(cmd_, 0x81);
@@ -166,54 +166,14 @@ public:
         font_cursor.x = font_cursor.x - font_cursor.last_width;
         GRAM_refresh();
     }
-
-private:
-    uint8_t OLED_GRAM[128][8];
-
-    bool cmd_ = 1;
-    bool data_ = 0;
-
-    void set_pixel(uint8_t x, uint8_t y, uint8_t mode) {
-        if (x > 127 || y > 63) return;
-
-        uint8_t i = 7 - y / 8; // 算出第几页
-        uint8_t j = y % 8;
-        uint8_t temp = 0x01 << (7 - j); // 由位运算精确找出坐标像素点
-
-        mode ? OLED_GRAM[x][i] |= temp : OLED_GRAM[x][i] &= ~temp;
-    };
-    void draw_char(char ch, oled::fonts::Font font) {
-        uint32_t i, b, j;
-        // 检查字符是否有效
-        if (ch < 32 || ch > 126) return;
-
-        // 检查当前行剩余空间
-        if (OLED_WIDTH < (font_cursor.x + font.width)) {
-            font_cursor.x = 0;
-            font_cursor.y += font.height;
-        }
-        if (OLED_HEIGHT < (font_cursor.y + font.height))
-            // 当前行空间不足
-            return;
-
-        // 使用字体进行写入
-        for (i = 0; i < font.height; i++) {
-            b = font.data[(ch - 32) * font.height + i];
-            for (j = 0; j < font.width; j++) {
-                if ((b << j) & 0x8000) {
-                    set_pixel(font_cursor.x + j, font_cursor.y + i, 1);
-                } else {
-                    set_pixel(font_cursor.x + j, font_cursor.y + i, 0);
-                }
-            }
-        }
-        // 声明当前空间已被占用
-        font_cursor.x += font.char_width ? font.char_width[ch - 32] : font.width;
-        font_cursor.last_width = font.width;
-        font_cursor.last_height = font.height;
-        GRAM_refresh();
-    }
     void OLED_Init(int contrast) {
+        OLED_WIDTH = 128;
+        OLED_HEIGHT = 64;
+        current_cursor = { 64, 32 };
+        font_cursor = { 0, 0, 0, 0 };
+        cmd_ = 1;
+        data_ = 0;
+
         OLED_CS(1);
         OLED_DC(1);
 
@@ -264,6 +224,54 @@ private:
         /* 清屏函数 */
         clear_screen();
     }
+
+private:
+    uint8_t OLED_GRAM[128][8];
+
+    bool cmd_;
+    bool data_;
+
+    void set_pixel(uint8_t x, uint8_t y, uint8_t mode) {
+        if (x > 127 || y > 63) return;
+
+        uint8_t i = 7 - y / 8; // 算出第几页
+        uint8_t j = y % 8;
+        uint8_t temp = 0x01 << (7 - j); // 由位运算精确找出坐标像素点
+
+        mode ? OLED_GRAM[x][i] |= temp : OLED_GRAM[x][i] &= ~temp;
+    };
+    void draw_char(char ch, oled::fonts::Font font) {
+        uint32_t i, b, j;
+        // 检查字符是否有效
+        if (ch < 32 || ch > 126) return;
+
+        // 检查当前行剩余空间
+        if (OLED_WIDTH < (font_cursor.x + font.width)) {
+            font_cursor.x = 0;
+            font_cursor.y += font.height;
+        }
+        if (OLED_HEIGHT < (font_cursor.y + font.height))
+            // 当前行空间不足
+            return;
+
+        // 使用字体进行写入
+        for (i = 0; i < font.height; i++) {
+            b = font.data[(ch - 32) * font.height + i];
+            for (j = 0; j < font.width; j++) {
+                if ((b << j) & 0x8000) {
+                    set_pixel(font_cursor.x + j, font_cursor.y + i, 1);
+                } else {
+                    set_pixel(font_cursor.x + j, font_cursor.y + i, 0);
+                }
+            }
+        }
+        // 声明当前空间已被占用
+        font_cursor.x += font.char_width ? font.char_width[ch - 32] : font.width;
+        font_cursor.last_width = font.width;
+        font_cursor.last_height = font.height;
+        GRAM_refresh();
+    }
+
     void OLED_write(bool cmd, uint8_t data) {
         uint8_t i, k;
         // 拉低片选CS，写命令拉低DC
@@ -300,4 +308,5 @@ private:
     void OLED_SCLK(bool cmd) { cmd ? HAL_GPIO_WritePin(OLED_SCK_GPIO_Port, OLED_SCK_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(OLED_SCK_GPIO_Port, OLED_SCK_Pin, GPIO_PIN_RESET); };
     void OLED_SDIN(bool cmd) { cmd ? HAL_GPIO_WritePin(OLED_MOSI_GPIO_Port, OLED_MOSI_Pin, GPIO_PIN_SET) : HAL_GPIO_WritePin(OLED_MOSI_GPIO_Port, OLED_MOSI_Pin, GPIO_PIN_RESET); };
 };
+inline constinit SSD1306 oled_1306;
 }
