@@ -6,21 +6,19 @@
 void process_esp32(uint16_t size) {
     HAL_UART_Transmit_DMA(&huart1, huart1_receive_buffer, size);
     if (strncmp((char*)huart1_receive_buffer, "lock", 4) == 0) {
-        HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+        if_locked = true;
     } else if (strncmp((char*)huart1_receive_buffer, "unlock", 6) == 0) {
-        HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+        if_locked = false;
     }
 }
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* huart, uint16_t Size) {
     if (huart->RxEventType != HAL_UART_RXEVENT_IDLE) return;
     if (huart == &huart1) {
-        // HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
         process_esp32(Size);
         HAL_UARTEx_ReceiveToIdle_DMA(&huart1, huart1_receive_buffer, sizeof(huart1_receive_buffer));
     }
     if (huart == &huart2) {
-        // HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
         fingerprint_reader::zw101_FpReader.receive(huart2_receive_buffer, Size);
         HAL_UARTEx_ReceiveToIdle_DMA(&huart2, huart2_receive_buffer, sizeof(huart2_receive_buffer));
     }

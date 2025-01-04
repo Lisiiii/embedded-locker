@@ -11,7 +11,7 @@ namespace fingerprint_reader {
 struct __attribute__((packed)) Header {
     uint16_t package_header;
     uint32_t device_address;
-    uint8_t signal; // 01 cmd , 02 data , 08 end-data
+    uint8_t signal; // 01 cmd , 02 data ，07 ack, 08 end-data
     uint16_t length;
 };
 struct __attribute__((packed)) RX_Package {
@@ -24,6 +24,7 @@ struct __attribute__((packed)) RX_Package {
 enum class package_type : uint8_t {
     CMD = 0x01,
     DATA = 0x02,
+    ACK = 0x07,
     END_DATA = 0x08,
 };
 

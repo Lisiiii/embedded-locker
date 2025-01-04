@@ -11,6 +11,8 @@ extern uint8_t huart2_receive_buffer[100];
 void entrypoint();
 void initialize();
 bool verify_password();
+
 #ifdef __cplusplus
+inline bool if_locked;
 }
 #endif

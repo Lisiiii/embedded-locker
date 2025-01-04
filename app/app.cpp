@@ -14,15 +14,17 @@
 
 uint8_t huart1_receive_buffer[100];
 uint8_t huart2_receive_buffer[100];
-bool if_locked = true;
-bool if_ui_changed = true;
 
+bool if_ui_changed = true;
+bool if_last_locked = true;
 /* 1: fingerprint, 2: password, 3:app
  */
-int unlock_way = 0;
+uint8_t unlock_way = 0;
 uint32_t last_unlock_time = 0;
 
 void initialize() {
+    if_locked = true;
+
     HAL_UARTEx_ReceiveToIdle_DMA(&huart1, huart1_receive_buffer, sizeof(huart1_receive_buffer));
     HAL_UARTEx_ReceiveToIdle_DMA(&huart2, huart2_receive_buffer, sizeof(huart2_receive_buffer));
     HAL_Delay(100); // wait for the devices to be ready
@@ -31,17 +33,25 @@ void initialize() {
 
     HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
     fingerprint_reader::zw101_FpReader.clear_fingerprint();
+
+    last_unlock_time = HAL_GetTick();
+}
+
+void change_door_state(bool state) {
+    // TODO: motor control code here
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, state ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
 void entrypoint() {
     initialize();
 
     while (true) {
-        HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, if_locked ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        change_door_state(if_locked);
+
         keyboard::KeyCode current_key = keyboard::keyboard_reader.read_keys();
         unlock_way = if_locked ? 3 : unlock_way;
 
-        if (HAL_GPIO_ReadPin(FINGER_TOUCH_GPIO_Port, FINGER_TOUCH_Pin) == GPIO_PIN_SET) {
+        if (fingerprint_reader::zw101_FpReader.detect_finger()) {
             if_ui_changed = true;
             if_locked = !fingerprint_reader::zw101_FpReader.verify_fingerprint();
             unlock_way = if_locked ? 3 : 1;
@@ -57,7 +67,11 @@ void entrypoint() {
             unlock_way = if_locked ? 3 : 2;
         }
 
-        if (if_ui_changed) {
+        if (!if_locked && if_last_locked == true) {
+            last_unlock_time = HAL_GetTick();
+        }
+
+        if (if_ui_changed || if_locked != if_last_locked) {
             oled::oled_1306.clear_screen();
             oled::oled_1306.draw_string(if_locked ? "- Locked" : "- Unlocked", oled::fonts::Font_11x18, 0);
             oled::oled_1306.draw_string((char*)"", oled::fonts::Font_11x18, 1);
@@ -65,14 +79,14 @@ void entrypoint() {
             oled::oled_1306.draw_string((char*)"Touch the fingerprint sensor or enter password", oled::fonts::Font_6x8, 1);
             if_ui_changed = false;
 
-            uint8_t upload_info[] = { static_cast<uint8_t>(if_locked ? 0x01 : 0x00), static_cast<uint8_t>(unlock_way) };
-            HAL_UART_Transmit_DMA(&huart1, upload_info, sizeof(upload_info));
+            uint8_t upload_info = static_cast<uint8_t>(if_locked ? 0x01 : 0x00) | static_cast<uint8_t>(unlock_way) << 4;
+            HAL_UART_Transmit_DMA(&huart1, &upload_info, sizeof(upload_info));
         }
 
         if (!if_locked && HAL_GetTick() - last_unlock_time > 30000) {
             if_locked = true;
             if_ui_changed = true;
-            last_unlock_time = HAL_GetTick();
         }
+        if_last_locked = if_locked;
     }
 }
