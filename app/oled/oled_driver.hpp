@@ -126,7 +126,7 @@ public:
 
         GRAM_refresh();
     };
-    void draw_string(char* str, oled::fonts::Font font, bool if_enter, bool if_clearline = false) {
+    void draw_string(const char* str, oled::fonts::Font font, bool if_enter, bool if_clearline = false) {
         if (if_clearline) {
             clear_line();
         } else if (if_enter) {
